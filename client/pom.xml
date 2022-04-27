@@ -15,14 +15,10 @@
 
     <properties>
         <javafx.version>11.0.2</javafx.version>
+        <jackson.version>2.13.2</jackson.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>ru.gb.network-storage</groupId>
-            <artifactId>commons</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -34,6 +30,40 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.17.1</version>
+        </dependency>
+
+        <!-- netty -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.70.Final</version>
+        </dependency>
+
+        <!-- jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.13.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.17.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -44,6 +74,15 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>ru.gb.storage.client.Client</mainClass>
+                    <executable>/path/to/jdk-11/bin/java</executable>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -60,6 +99,8 @@
                     </execution>
                 </executions>
             </plugin>
+
+
         </plugins>
     </build>
 
