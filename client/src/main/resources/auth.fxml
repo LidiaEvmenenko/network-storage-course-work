@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ru.gb.storage.client.AuthController">
+
+    <Label />
+    <TextField fx:id="loginField" promptText="Введите имя пользователя" alignment="CENTER_LEFT"/>
+    <PasswordField fx:id="passwordField" promptText="Введите пароль" alignment="CENTER_LEFT" onAction="#authClient"/>
+
+    <HBox alignment="CENTER">
+        <Button fx:id="buttRegister" onAction="#registerClient">Зарегистрироваться</Button>
+        <Button fx:id="buttAuth" onAction="#authClient">Войти</Button>
+        <Button fx:id="buttCancel" onAction="#closeWindow">Закрыть</Button>
+    </HBox>
+    <Label fx:id="labelAuth" alignment="CENTER" maxWidth="Infinity"/>
+</VBox>
