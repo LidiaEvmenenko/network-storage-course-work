@@ -1,4 +1,4 @@
-package ru.gb.storage.client.message;
+package ru.gb.storage.commons.message;
 import java.nio.file.Path;
 
 public class NewDirMessage extends Message{

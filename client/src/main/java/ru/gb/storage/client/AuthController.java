@@ -7,8 +7,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import ru.gb.storage.client.message.AuthMessage;
-import ru.gb.storage.client.message.Message;
+import ru.gb.storage.commons.message.AuthMessage;
+import ru.gb.storage.commons.message.Message;
 
 public class AuthController {
     @FXML

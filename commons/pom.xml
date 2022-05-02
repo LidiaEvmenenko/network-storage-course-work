@@ -30,6 +30,10 @@
     </properties>
 
     <dependencies>
+<!--        <dependency>-->
+<!--            <artifactId>DEV-SNAPSHOT</artifactId>-->
+
+<!--        </dependency>-->
         <!-- netty -->
         <dependency>
             <groupId>io.netty</groupId>

@@ -9,7 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.stage.Stage;
-import ru.gb.storage.client.message.NewDirMessage;
+import ru.gb.storage.commons.message.NewDirMessage;
 
 import java.io.IOException;
 import java.net.URL;
