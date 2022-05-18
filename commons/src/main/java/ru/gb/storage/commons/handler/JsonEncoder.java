@@ -9,7 +9,7 @@ import ru.gb.storage.commons.message.Message;
 
 public class JsonEncoder extends MessageToMessageEncoder<Message> {
 
-    private static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message message, List<Object> list) throws Exception {

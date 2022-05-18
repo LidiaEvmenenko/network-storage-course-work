@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<?import javafx.scene.control.cell.CheckBoxTreeCell?>
 <VBox alignment="center" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.gb.storage.client.ClientController"
       prefHeight="400.0" prefWidth="600.0">
@@ -17,6 +12,7 @@
                 <Button fx:id="buttClientSend" onAction="#sendFileClient" maxWidth="Infinity" disable="true">Отправить</Button>
                 <Button fx:id="buttClientMd" onAction="#newDirectoryClient" maxWidth="Infinity" disable="true">Создать папку</Button>
                 <Button fx:id="buttClientAdd" onAction="#addFileClient" maxWidth="Infinity" disable="true">Добавить</Button>
+                <Button fx:id="buttClientDelete" onAction="#deleteFileClient" maxWidth="Infinity" disable="true">Удалить</Button>
             </HBox>
             <Label fx:id="labelClient" text="Client" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
             <TreeView fx:id="treeViewClient" maxWidth="Infinity"/>
@@ -28,7 +24,7 @@
                 <Button fx:id="buttServerDelete" onAction="#deleteFileServer" maxWidth="Infinity" disable="true">Удалить</Button>
             </HBox>
             <Label fx:id="labelServer" text="Server" alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-            <ListView fx:id="listViewServer" onMouseClicked="#choiceListView" maxWidth="Infinity"/>
+            <ListView fx:id="listViewServer" onMouseClicked="#choiceListViewServer" maxWidth="Infinity"/>
         </VBox>
     </HBox>
     <HBox VBox.vgrow="ALWAYS">

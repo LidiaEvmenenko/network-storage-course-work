@@ -20,19 +20,20 @@ public class AuthController {
     @FXML
     private Label labelAuth;
     private Channel channel;
+    protected ClientController mainController;
+
+    public void setMainController(ClientController mainController) {
+        this.mainController = mainController;
+    }
 
     public void receiveAuthMessage(Message msg) {
         AuthMessage message = (AuthMessage) msg;
-        if (message.isRegistr()){
-            updateUI(() -> {
-                labelAuth.setText(message.getMessage());
-            });
+        if (message.isRegistration()){
+            updateUI(() -> labelAuth.setText(message.getMessage()));
 
         }else {
             if (message.isError()){
-                updateUI(() -> {
-                    labelAuth.setText(message.getMessage());
-                });
+                updateUI(() -> labelAuth.setText(message.getMessage()));
             }else {
                 closeWindow();
             }
@@ -41,9 +42,7 @@ public class AuthController {
 
     public void closeWindow() {
         Stage stage = (Stage) buttCancel.getScene().getWindow();
-        updateUI(() -> {
-            stage.close();
-        });
+        updateUI(stage::close);
     }
     public void setChannelAuth(Channel channel){
         this.channel = channel;
@@ -57,9 +56,9 @@ public class AuthController {
             AuthMessage authMessage = new AuthMessage();
             authMessage.setLogin(loginField.getText());
             authMessage.setPassword(passwordField.getText());
-            authMessage.setRegistr(true);
+            authMessage.setRegistration(true);
             channel.writeAndFlush(authMessage);
-            channel.flush();
+
         }
     }
 
@@ -71,9 +70,9 @@ public class AuthController {
             AuthMessage authMessage = new AuthMessage();
             authMessage.setLogin(loginField.getText());
             authMessage.setPassword(passwordField.getText());
-            authMessage.setRegistr(false);
+            authMessage.setRegistration(false);
             channel.writeAndFlush(authMessage);
-            channel.flush();
+
         }
     }
     private void updateUI(Runnable r){// для того, чтобы можно было обновлять интерфейс из любого потока
@@ -82,5 +81,10 @@ public class AuthController {
         }else {
             Platform.runLater(r);
         }
+    }
+
+    public void closeClient() {
+        closeWindow();
+        mainController.closeWindow();
     }
 }

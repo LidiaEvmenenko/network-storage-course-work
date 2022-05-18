@@ -1,6 +1,5 @@
 package ru.gb.storage.commons.message;
 
-import java.nio.file.Path;
 import java.util.List;
 
 public class ListMessage extends Message {

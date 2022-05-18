@@ -12,30 +12,29 @@ import ru.gb.storage.commons.handler.JsonEncoder;
 import ru.gb.storage.commons.handler.ClientHandler;
 import ru.gb.storage.commons.message.*;
 
-import java.io.File;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 public class Server implements Runnable {
-    private int port;
+    private final int port;
     private static DBAuthenticationProvider db;
-    private Connection connection = null;
+    private static final Logger LOGGER = LogManager.getLogger(Server.class);
 
     public Server(int port) {
         this.port = port;
         run();
-
     }
 
     public static void main(String[] args) {
         db = new DBAuthenticationProvider();
         if (db.getConnection() == null) {
             System.out.println("Нет связи с БД.");
+            LOGGER.error("Error: Нет связи с БД.");
         } else {
             new Server(9000);
         }
@@ -51,7 +50,7 @@ public class Server implements Runnable {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
-                        protected void initChannel(NioSocketChannel ch) throws Exception {
+                        protected void initChannel(NioSocketChannel ch) {
                             ch.pipeline().addLast(
                                     new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 3, 0, 3),
                                     new LengthFieldPrepender(3),
@@ -59,22 +58,23 @@ public class Server implements Runnable {
                                     new JsonEncoder(),
                                     new SimpleChannelInboundHandler<Message>() {
                                         @Override
-                                        protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
+                                        public void channelActive(ChannelHandlerContext ctx) {
+                                            LOGGER.info("Подключился новый клиент.");
+                                        }
+
+                                        @Override
+                                        public void channelInactive(ChannelHandlerContext ctx)  {
+                                            LOGGER.info("Клиент отключился от сервера.");
+                                        }
+
+                                        @Override
+                                        protected void channelRead0(ChannelHandlerContext ctx, Message msg) {
                                             if (msg instanceof AuthMessage) {
                                                 AuthMessage message = (AuthMessage) msg;
+                                                LOGGER.info("Получено новое сообщение типа AuthMessage.");
                                                 taskAuthMessage(ctx, message);
                                             }
-                                            if (msg instanceof ListMessage) {
-                                                ctx.fireChannelRead(msg);
-                                            }
-                                            if (msg instanceof DeleteMessage) {
-                                                ctx.fireChannelRead(msg);
-                                            }
-                                            if (msg instanceof FileContentMessage) {
-                                                ctx.fireChannelRead(msg);
-                                            }
-                                            if (msg instanceof FileRequestMessage) {
-                                                System.out.println("Пришло сообщение");
+                                            if (msg instanceof ListMessage || msg instanceof DeleteMessage || msg instanceof FileContentMessage || msg instanceof FileRequestMessage) {
                                                 ctx.fireChannelRead(msg);
                                             }
                                         }
@@ -86,41 +86,47 @@ public class Server implements Runnable {
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             ChannelFuture future = server.bind(port).sync();
-            System.out.println("Server started.");
+            LOGGER.info("Сервер запущен.");
             future.channel().closeFuture().sync();
         } catch (Exception e) {
-             e.printStackTrace();
+            LOGGER.error("Error: Ошибка запуска сервера. ",e);
         } finally {
             bossGroup.shutdownGracefully();
             workGroup.shutdownGracefully();
+            db.disconnect();
+            LOGGER.info("Сервер завершил свою работу.");
         }
     }
 
-    private void taskAuthMessage(ChannelHandlerContext ctx, Message msg) throws SQLException {
+    private void taskAuthMessage(ChannelHandlerContext ctx, Message msg) {
         AuthMessage message = (AuthMessage) msg;
         AuthMessage authMessage = new AuthMessage();
-        if (message.isRegistr()) {
-            authMessage.setRegistr(true);
+        if (message.isRegistration()) {
+            authMessage.setRegistration(true);
             if (db.insertUsers(message.getLogin(), message.getPassword())) {
                 authMessage.setMessage("Регистрация прошла успешно.");
                 authMessage.setError(false);
+                LOGGER.info("Зарегистрирован новый клиент: "+ message.getLogin() + ".");
             } else {
                 authMessage.setError(true);
                 authMessage.setMessage("При регистрации произошла ошибка.");
+                LOGGER.warn("Неверно сформирован запрос на регистрацию.");
             }
         } else {
-            authMessage.setRegistr(false);
+            authMessage.setRegistration(false);
             if (db.getLoginByLoginAndPassword(message.getLogin(), message.getPassword())) {
                 authMessage.setError(false);
+                LOGGER.info("Успешно авторизован клиент: " + message.getLogin() + ".");
                 Path parent = Paths.get(".");
-                Path path = Paths.get( "server_repository", message.getLogin());
+                Path path = Paths.get("server_repository", message.getLogin());
                 for (Path p : path){
                     Path cur = parent.resolve(p);
                     if(!Files.exists(parent.resolve(p))){
                         try {
                             Files.createDirectory(cur);
+                            LOGGER.info("Создана директория для нового клиента "+ message.getLogin() + ".");
                         } catch (IOException e) {
-                            System.out.println("Директория уже существует");
+                            LOGGER.error("Error: Не удалось создать директорию нового клиента: " + message.getLogin() + ". ",e);
                         }
                     }
                     parent = cur;
@@ -129,6 +135,7 @@ public class Server implements Runnable {
             } else {
                 authMessage.setError(true);
                 authMessage.setMessage("Неверный логин/пароль.");
+                LOGGER.warn("Неверно указан логин/пароль при авторизации.");
             }
         }
         ctx.writeAndFlush(authMessage);

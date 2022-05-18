@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -17,7 +14,7 @@
     <HBox alignment="CENTER">
         <Button fx:id="buttRegister" onAction="#registerClient">Зарегистрироваться</Button>
         <Button fx:id="buttAuth" onAction="#authClient">Войти</Button>
-        <Button fx:id="buttCancel" onAction="#closeWindow">Закрыть</Button>
+        <Button fx:id="buttCancel" onAction="#closeClient">Закрыть</Button>
     </HBox>
     <Label fx:id="labelAuth" alignment="CENTER" maxWidth="Infinity"/>
 </VBox>

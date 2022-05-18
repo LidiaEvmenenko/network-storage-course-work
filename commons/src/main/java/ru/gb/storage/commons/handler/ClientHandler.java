@@ -1,10 +1,6 @@
 package ru.gb.storage.commons.handler;
 
-
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.*;
 import ru.gb.storage.commons.message.*;
 
 import java.io.File;
@@ -15,21 +11,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
-import static java.nio.file.Files.*;
 
-public class ClientHandler extends ChannelInboundHandlerAdapter {
+public class ClientHandler extends SimpleChannelInboundHandler {
     private String userName;
     private RandomAccessFile accessFile;
+    private static final Logger LOGGER = LogManager.getLogger(ClientHandler.class);
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof AuthMessage) {
             AuthMessage message = (AuthMessage) msg;
             userName = message.getLogin();
+            LOGGER.info("Получено новое сообщение типа AuthMessage от клиента " + userName);
         }
         if (msg instanceof ListMessage) {
             ListMessage message = new ListMessage();
+            LOGGER.info("Получено новое сообщение типа ListMessage от клиента " + userName);
             Path path = Paths.get( "server_repository",userName);
             List<String> pathList = new ArrayList<>();
             try(DirectoryStream<Path> files = Files.newDirectoryStream(path)){
@@ -39,11 +39,11 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             }
             message.setPathList(pathList);
             ctx.writeAndFlush(message);
-            ctx.flush();
         }
         if (msg instanceof DeleteMessage) {
             DeleteMessage message = (DeleteMessage) msg;
             Path path = Paths.get( "server_repository",userName,message.getFileName());
+            LOGGER.info("Получено новое сообщение типа DeleteMessage на удаление файла " + path);
             Files.delete(path);
         }
         if (msg instanceof FileContentMessage) {
@@ -52,21 +52,22 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof FileRequestMessage) {
             FileRequestMessage msgReguest = (FileRequestMessage) msg;
             Path path = Paths.get( "server_repository", userName, msgReguest.getFileName());
+            LOGGER.info("Клиент " + userName + " отправил запрос на скачивание файла " + msgReguest.getFileName() + ".");
             if (accessFile == null) {
                 File file = new File(String.valueOf(path));
                 accessFile = new RandomAccessFile(file, "r");
                 sendFile(ctx, msgReguest);
             }
         }
-
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        LOGGER.error("Error: Критическая ошибка обработки клиентского подключения. ",cause);
         ctx.close();
     }
-    private void sendFile(final ChannelHandlerContext ctx, final FileRequestMessage msgReguest) throws IOException, InterruptedException {
+
+    private void sendFile(final ChannelHandlerContext ctx, final FileRequestMessage msgReguest) throws IOException {
         if (accessFile != null) {
             byte[] fileContent;
             long avaible = accessFile.length() - accessFile.getFilePointer();
@@ -75,7 +76,6 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             } else {
                 fileContent = new byte[(int) avaible];
             }
-
             FileContentMessage message1 = new FileContentMessage();
             message1.setStartPosition(accessFile.getFilePointer());
             accessFile.read(fileContent);
@@ -92,6 +92,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 }
             });
             if (last){
+                LOGGER.info("Файл" + msgReguest.getFileName() + " передан клиенту "+ userName + ".");
                 accessFile.close();
                 accessFile = null;
             }
@@ -99,17 +100,17 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     }
     private void taskFileContentMessage(Message msg){
         FileContentMessage fcm =(FileContentMessage) msg;
-        try {
-            Path path = Paths.get(".","server_repository", userName, fcm.getFileName());
-            RandomAccessFile accessFile = new RandomAccessFile(String.valueOf(path),"rw");
-            accessFile.seek(fcm.getStartPosition());
-            accessFile.write(fcm.getContent());
+        Path path = Paths.get(".","server_repository", userName, fcm.getFileName());
+        try (RandomAccessFile accessFile1 = new RandomAccessFile(String.valueOf(path),"rw")) {
+            accessFile1.seek(fcm.getStartPosition());
+            accessFile1.write(fcm.getContent());
             if (fcm.isLast()){
-                accessFile.close();
+                accessFile1.close();
+                LOGGER.info("Файл" + fcm.getFileName() + " получен от клиента "+ userName + ".");
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Error: Ошибка записи файла. ",e);
         }
     }
 }

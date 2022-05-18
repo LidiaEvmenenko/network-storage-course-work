@@ -3,7 +3,7 @@ package ru.gb.storage.commons.message;
 public class AuthMessage extends Message {
     private String login;
     private String password;
-    private boolean registr; // признак вход или регистрация
+    private boolean registration; // признак вход или регистрация
     private String message = null;
     private boolean error; //признак ошибки
 
@@ -11,8 +11,8 @@ public class AuthMessage extends Message {
 
     }
 
-    public boolean isRegistr() {
-        return registr;
+    public boolean isRegistration() {
+        return registration;
     }
 
     public boolean isError() {
@@ -23,8 +23,8 @@ public class AuthMessage extends Message {
         this.error = error;
     }
 
-    public void setRegistr(boolean registr) {
-        this.registr = registr;
+    public void setRegistration(boolean registration) {
+        this.registration = registration;
     }
 
     public String getMessage() {
@@ -56,7 +56,7 @@ public class AuthMessage extends Message {
         return "AuthMessage{" +
                 "login='" + login + '\'' +
                 ", password='" + password + '\'' +
-                ", registr=" + registr +
+                ", registration=" + registration +
                 ", message='" + message + '\'' +
                 ", error=" + error +
                 '}';

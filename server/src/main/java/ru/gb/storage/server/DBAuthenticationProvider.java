@@ -1,15 +1,10 @@
 package ru.gb.storage.server;
 
-
-import java.io.IOException;
 import java.sql.*;
 
 public class DBAuthenticationProvider {
     private Connection connection;
     private PreparedStatement ps;
-    private Statement statement;
-
-    private String message;
 
 
     public DBAuthenticationProvider() {
@@ -24,7 +19,7 @@ public class DBAuthenticationProvider {
     public void connect() {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:dbjava.db");
-            connection.setAutoCommit(true); //автоматически закрывается транзакция
+            connection.setAutoCommit(true);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -55,7 +50,6 @@ public class DBAuthenticationProvider {
     }
 
     private synchronized void insert( String login, String password) {
-
         try {
             ps = connection.prepareStatement("insert into users(login,password) values (?,?)");
             ps.setString(1, login);
@@ -64,25 +58,10 @@ public class DBAuthenticationProvider {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
             try {
-                connection.rollback(); // в случае ошибки произойдет откат всей транзакции
+                connection.rollback();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    public synchronized void select() {
-        try {
-            System.out.println("select");
-            ps = connection.prepareStatement("select * from users");
-            ResultSet rs = ps.executeQuery();
-            StringBuilder builder = new StringBuilder(50);
-            while (rs.next()) {
-                System.out.printf("%d %s %s \n", rs.getInt(1),
-                        rs.getString(2), rs.getString(3));
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
         }
     }
 
@@ -110,7 +89,7 @@ public class DBAuthenticationProvider {
         return false;
     }
 
-    public synchronized boolean insertUsers(String login, String password) throws SQLException { // вставка по одной записи
+    public synchronized boolean insertUsers(String login, String password) {
         try {
             ps= connection.prepareStatement("select login from users where login = ?");
             ps.setString(1, login);
